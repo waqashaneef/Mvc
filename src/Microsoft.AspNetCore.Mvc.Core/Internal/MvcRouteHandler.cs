@@ -4,8 +4,6 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Routing;
@@ -87,46 +85,23 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 context.RouteData.Values.Remove(TreeRouter.RouteGroupKey);
             }
 
-            context.Handler = (c) => InvokeActionAsync(c, actionDescriptor);
+            var routeData = context.HttpContext.GetRouteData();
+            var actionContext = new ActionContext(context.HttpContext, routeData, actionDescriptor);
+            if (_actionContextAccessor != null)
+            {
+                _actionContextAccessor.ActionContext = actionContext;
+            }
+
+            var invoker = _actionInvokerFactory.CreateInvoker(actionContext);
+            if (invoker == null)
+            {
+                throw new InvalidOperationException(
+                    Resources.FormatActionInvokerFactory_CouldNotCreateInvoker(
+                        actionDescriptor.DisplayName));
+            }
+
+            context.Handler = async (c) => await invoker.InvokeAsync();
             return TaskCache.CompletedTask;
-        }
-
-        private async Task InvokeActionAsync(HttpContext httpContext, ActionDescriptor actionDescriptor)
-        {
-            var routeData = httpContext.GetRouteData();
-            try
-            {
-                _diagnosticSource.BeforeAction(actionDescriptor, httpContext, routeData);
-
-                using (_logger.ActionScope(actionDescriptor))
-                {
-                    _logger.ExecutingAction(actionDescriptor);
-
-                    var startTimestamp = _logger.IsEnabled(LogLevel.Information) ? Stopwatch.GetTimestamp() : 0;
-
-                    var actionContext = new ActionContext(httpContext, routeData, actionDescriptor);
-                    if (_actionContextAccessor != null)
-                    {
-                        _actionContextAccessor.ActionContext = actionContext;
-                    }
-
-                    var invoker = _actionInvokerFactory.CreateInvoker(actionContext);
-                    if (invoker == null)
-                    {
-                        throw new InvalidOperationException(
-                            Resources.FormatActionInvokerFactory_CouldNotCreateInvoker(
-                                actionDescriptor.DisplayName));
-                    }
-
-                    await invoker.InvokeAsync();
-
-                    _logger.ExecutedAction(actionDescriptor, startTimestamp);
-                }
-            }
-            finally
-            {
-                _diagnosticSource.AfterAction(actionDescriptor, httpContext, routeData);
-            }
         }
     }
 }
