@@ -3,11 +3,10 @@
 
 using System;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.Mvc.Core;
+using Microsoft.AspNetCore.Mvc.Internal;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.AspNetCore.Mvc
@@ -18,7 +17,7 @@ namespace Microsoft.AspNetCore.Mvc
     /// </summary>
     public class PhysicalFileResult : FileResult
     {
-        private const int DefaultBufferSize = 0x1000;
+        private PhysicalFileResultExecutor _executor;
         private string _fileName;
 
         /// <summary>
@@ -74,31 +73,21 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         /// <inheritdoc />
-        protected override async Task WriteFileAsync(HttpResponse response)
+        public override Task ExecuteResultAsync(ActionContext context)
         {
-            if (!Path.IsPathRooted(FileName))
+            if (context == null)
             {
-                throw new NotSupportedException(Resources.FormatFileResult_PathNotRooted(FileName));
+                throw new ArgumentNullException(nameof(context));
             }
 
-            var sendFile = response.HttpContext.Features.Get<IHttpSendFileFeature>();
-            if (sendFile != null)
-            {
-                await sendFile.SendFileAsync(
-                    FileName,
-                    offset: 0,
-                    count: null,
-                    cancellation: default(CancellationToken));
-            }
-            else
-            {
-                var fileStream = GetFileStream(FileName);
+            _executor = context.HttpContext.RequestServices.GetRequiredService<PhysicalFileResultExecutor>();
+            return _executor.ExecuteAsync(this, context);
+        }
 
-                using (fileStream)
-                {
-                    await fileStream.CopyToAsync(response.Body, DefaultBufferSize);
-                }
-            }
+        /// <inheritdoc />
+        public override Task WriteFileAsync(HttpResponse response)
+        {
+            return _executor.DefaultWriteFileAsync();
         }
 
         /// <summary>
@@ -106,20 +95,9 @@ namespace Microsoft.AspNetCore.Mvc
         /// </summary>
         /// <param name="path">The path for which the <see cref="FileStream"/> is needed.</param>
         /// <returns><see cref="FileStream"/> for the specified <paramref name="path"/>.</returns>
-        protected virtual Stream GetFileStream(string path)
+        public virtual Stream GetFileStream(string path)
         {
-            if (path == null)
-            {
-                throw new ArgumentNullException(nameof(path));
-            }
-
-            return new FileStream(
-                    path,
-                    FileMode.Open,
-                    FileAccess.Read,
-                    FileShare.ReadWrite,
-                    DefaultBufferSize,
-                    FileOptions.Asynchronous | FileOptions.SequentialScan);
+            return _executor.DefaultGetFileStream(path);
         }
     }
 }

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.TestCommon;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -206,7 +207,7 @@ namespace Microsoft.AspNetCore.Mvc
 
             public bool IsAscii { get; set; } = false;
 
-            protected override Stream GetFileStream(string path)
+            public override Stream GetFileStream(string path)
             {
                 if (IsAscii)
                 {
@@ -222,6 +223,7 @@ namespace Microsoft.AspNetCore.Mvc
         private static IServiceCollection CreateServices()
         {
             var services = new ServiceCollection();
+            services.AddTransient<PhysicalFileResultExecutor>();
             services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
             return services;
         }

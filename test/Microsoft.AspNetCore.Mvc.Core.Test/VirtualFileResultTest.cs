@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.TestCommon;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -65,7 +66,8 @@ namespace Microsoft.AspNetCore.Mvc
             var httpContext = GetHttpContext();
             httpContext.Response.Body = new MemoryStream();
             httpContext.RequestServices = new ServiceCollection()
-                .AddSingleton<IHostingEnvironment>(appEnvironment.Object)
+                .AddSingleton(appEnvironment.Object)
+                .AddTransient<VirtualFileResultExecutor>()
                 .AddTransient<ILoggerFactory, LoggerFactory>()
                 .BuildServiceProvider();
             var context = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
@@ -300,6 +302,10 @@ namespace Microsoft.AspNetCore.Mvc
         {
             var services = new ServiceCollection();
 
+            var hostingEnvironment = new Mock<IHostingEnvironment>();
+
+            services.AddTransient<VirtualFileResultExecutor>();
+            services.AddSingleton<IHostingEnvironment>(hostingEnvironment.Object);
             services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
 
             return services;
@@ -315,7 +321,7 @@ namespace Microsoft.AspNetCore.Mvc
             return httpContext;
         }
 
-        private IFileProvider GetFileProvider(string path)
+        private static IFileProvider GetFileProvider(string path)
         {
             var fileInfo = new Mock<IFileInfo>();
             fileInfo.SetupGet(fi => fi.Exists).Returns(true);
@@ -337,7 +343,7 @@ namespace Microsoft.AspNetCore.Mvc
 
             public bool IsAscii { get; set; } = false;
 
-            protected override Stream GetFileStream(IFileInfo fileInfo)
+            public override Stream GetFileStream(IFileInfo fileInfo)
             {
                 if (IsAscii)
                 {
