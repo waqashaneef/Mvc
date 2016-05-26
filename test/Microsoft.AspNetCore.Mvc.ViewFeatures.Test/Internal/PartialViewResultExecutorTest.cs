@@ -340,7 +340,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 new CompositeViewEngine(options),
                 new TempDataDictionaryFactory(new SessionStateTempDataProvider()),
                 diagnosticSource,
-                NullLoggerFactory.Instance);
+                NullLoggerFactory.Instance,
+                new TestModelMetadataProvider());
 
             return viewExecutor;
         }

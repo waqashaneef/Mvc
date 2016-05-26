@@ -33,12 +33,14 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         /// <param name="viewEngine">The <see cref="ICompositeViewEngine"/>.</param>
         /// <param name="tempDataFactory">The <see cref="ITempDataDictionaryFactory"/>.</param>
         /// <param name="diagnosticSource">The <see cref="DiagnosticSource"/>.</param>
+        /// <param name="modelMetadataProvider">The <see cref="IModelMetadataProvider" />.</param>
         public ViewExecutor(
             IOptions<MvcViewOptions> viewOptions,
             IHttpResponseStreamWriterFactory writerFactory,
             ICompositeViewEngine viewEngine,
             ITempDataDictionaryFactory tempDataFactory,
-            DiagnosticSource diagnosticSource)
+            DiagnosticSource diagnosticSource,
+            IModelMetadataProvider modelMetadataProvider)
         {
             if (viewOptions == null)
             {
@@ -65,12 +67,23 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 throw new ArgumentNullException(nameof(diagnosticSource));
             }
 
+            if (modelMetadataProvider == null)
+            {
+                throw new ArgumentNullException(nameof(modelMetadataProvider));
+            }
+
             ViewOptions = viewOptions.Value;
             WriterFactory = writerFactory;
             ViewEngine = viewEngine;
             TempDataFactory = tempDataFactory;
             DiagnosticSource = diagnosticSource;
+            ModelMetadataProvider = modelMetadataProvider;
         }
+
+        /// <summary>
+        /// Gets the <see cref="IModelMetadataProvider"/>.
+        /// </summary>
+        public IModelMetadataProvider ModelMetadataProvider { get; }
 
         /// <summary>
         /// Gets the <see cref="DiagnosticSource"/>.
@@ -132,9 +145,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             if (viewData == null)
             {
-                var services = actionContext.HttpContext.RequestServices;
-                var metadataProvider = services.GetRequiredService<IModelMetadataProvider>();
-                viewData = new ViewDataDictionary(metadataProvider, actionContext.ModelState);
+                viewData = new ViewDataDictionary(ModelMetadataProvider, actionContext.ModelState);
             }
 
             if (tempData == null)

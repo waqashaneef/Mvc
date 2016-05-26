@@ -227,7 +227,8 @@ namespace Microsoft.AspNetCore.Mvc
                 new CompositeViewEngine(options),
                 new TempDataDictionaryFactory(new SessionStateTempDataProvider()),
                 new DiagnosticListener("Microsoft.AspNetCore"),
-               NullLoggerFactory.Instance);
+                NullLoggerFactory.Instance,
+                new TestModelMetadataProvider());
 
             var services = new ServiceCollection();
             services.AddSingleton(viewExecutor);
