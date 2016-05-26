@@ -53,26 +53,26 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             viewEngine.Verify();
         }
 
-        [Fact]
-        public void FindView_UsesActionDescriptorName_IfViewNameIsNull()
-        {
-            // Arrange
-            var viewName = "some-view-name";
-            var context = GetActionContext(viewName);
-            var executor = GetViewExecutor();
+        //[Fact]
+        //public void FindView_UsesActionDescriptorName_IfViewNameIsNull()
+        //{
+        //    // Arrange
+        //    var viewName = "some-view-name";
+        //    var context = GetActionContext(viewName);
+        //    var executor = GetViewExecutor();
 
-            var viewResult = new ViewResult
-            {
-                ViewData = new ViewDataDictionary(new EmptyModelMetadataProvider()),
-                TempData = Mock.Of<ITempDataDictionary>(),
-            };
+        //    var viewResult = new ViewResult
+        //    {
+        //        ViewData = new ViewDataDictionary(new EmptyModelMetadataProvider()),
+        //        TempData = Mock.Of<ITempDataDictionary>(),
+        //    };
 
-            // Act
-            var viewEngineResult = executor.FindView(context, viewResult);
+        //    // Act
+        //    var viewEngineResult = executor.FindView(context, viewResult);
 
-            // Assert
-            Assert.Equal(viewName, viewEngineResult.ViewName);
-        }
+        //    // Assert
+        //    Assert.Equal(viewName, viewEngineResult.ViewName);
+        //}
 
         [Fact]
         public void FindView_ReturnsExpectedNotFoundResult_WithGetViewLocations()

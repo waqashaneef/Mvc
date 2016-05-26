@@ -102,7 +102,7 @@ namespace Microsoft.AspNetCore.Mvc
         [NonAction]
         public virtual ViewResult View()
         {
-            return View(viewName: null);
+            return View(viewName: ControllerContext.ActionDescriptor.ActionName);
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace Microsoft.AspNetCore.Mvc
         [NonAction]
         public virtual ViewResult View(object model)
         {
-            return View(viewName: null, model: model);
+            return View(viewName: ControllerContext.ActionDescriptor.ActionName, model: model);
         }
 
         /// <summary>
@@ -159,7 +159,7 @@ namespace Microsoft.AspNetCore.Mvc
         [NonAction]
         public virtual PartialViewResult PartialView()
         {
-            return PartialView(viewName: null);
+            return PartialView(viewName: ControllerContext.ActionDescriptor.ActionName);
         }
 
         /// <summary>
@@ -182,7 +182,7 @@ namespace Microsoft.AspNetCore.Mvc
         [NonAction]
         public virtual PartialViewResult PartialView(object model)
         {
-            return PartialView(viewName: null, model: model);
+            return PartialView(viewName: ControllerContext.ActionDescriptor.ActionName, model: model);
         }
 
         /// <summary>
