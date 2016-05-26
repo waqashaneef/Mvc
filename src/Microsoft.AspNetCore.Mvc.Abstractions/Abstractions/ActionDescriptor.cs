@@ -22,9 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.Abstractions
         /// <summary>
         /// Gets an id which uniquely identifies the action.
         /// </summary>
-        public string Id { get; }
-
-        public virtual string Name { get; set; }
+        public string Id { get; }        
 
         /// <summary>
         /// Gets or sets the collection of route values that must be provided by routing

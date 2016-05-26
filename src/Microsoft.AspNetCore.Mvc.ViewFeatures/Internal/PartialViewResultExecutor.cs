@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
@@ -69,7 +70,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             }
 
             var viewEngine = viewResult.ViewEngine ?? ViewEngine;
-            var viewName = viewResult.ViewName ?? actionContext.ActionDescriptor.Name;
+            var viewName = viewResult.ViewName ?? (actionContext.ActionDescriptor as ControllerActionDescriptor)?.ActionName;
 
             var result = viewEngine.GetView(executingFilePath: null, viewPath: viewName, isMainPage: false);
             var originalResult = result;
