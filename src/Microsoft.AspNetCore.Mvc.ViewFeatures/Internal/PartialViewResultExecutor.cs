@@ -69,13 +69,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 throw new ArgumentNullException(nameof(viewResult));
             }
 
-            if (viewResult.ViewName == null)
-            {
-                throw new InvalidOperationException("Partial view result must have a valid name.");
-            }
-
             var viewEngine = viewResult.ViewEngine ?? ViewEngine;
-            var viewName = viewResult.ViewName;
+            var viewName = viewResult.ViewName ?? (actionContext.ActionDescriptor as ControllerActionDescriptor)?.ActionName;
 
             var result = viewEngine.GetView(executingFilePath: null, viewPath: viewName, isMainPage: false);
             var originalResult = result;
