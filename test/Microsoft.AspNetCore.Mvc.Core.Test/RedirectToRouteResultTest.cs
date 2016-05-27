@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Testing;
@@ -106,6 +107,9 @@ namespace Microsoft.AspNetCore.Mvc
             serviceProvider
                 .Setup(sp => sp.GetService(typeof(ILoggerFactory)))
                 .Returns(NullLoggerFactory.Instance);
+            serviceProvider
+                .Setup(sp => sp.GetService(typeof(RedirectToRouteResultExecutor)))
+                .Returns(new RedirectToRouteResultExecutor(NullLoggerFactory.Instance, factory.Object));
 
             var httpContext = GetHttpContext();
             httpContext.RequestServices = serviceProvider.Object;
@@ -136,6 +140,8 @@ namespace Microsoft.AspNetCore.Mvc
         private static IServiceCollection CreateServices()
         {
             var services = new ServiceCollection();
+            services.AddSingleton<RedirectToRouteResultExecutor>();
+            services.AddSingleton<IUrlHelperFactory,UrlHelperFactory>();
             services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
             return services;
         }

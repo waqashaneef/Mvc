@@ -207,6 +207,10 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton(ArrayPool<byte>.Shared);
             services.TryAddSingleton(ArrayPool<char>.Shared);
             services.TryAddSingleton<ObjectResultExecutor>();
+            services.TryAddSingleton<RedirectResultExecutor>();
+            services.TryAddSingleton<LocalRedirectResultExecutor>();
+            services.TryAddSingleton<RedirectToActionResultExecutor>();
+            services.TryAddSingleton<RedirectToRouteResultExecutor>();
 
             //
             // Setup default handler
