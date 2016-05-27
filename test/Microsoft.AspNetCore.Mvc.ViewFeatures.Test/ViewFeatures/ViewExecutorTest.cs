@@ -365,7 +365,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 new Mock<ICompositeViewEngine>(MockBehavior.Strict).Object,
                 new TempDataDictionaryFactory(new SessionStateTempDataProvider()),
                 diagnosticSource,
-                new TestModelMetadataProvider());
+                new EmptyModelMetadataProvider());
         }
     }
 }

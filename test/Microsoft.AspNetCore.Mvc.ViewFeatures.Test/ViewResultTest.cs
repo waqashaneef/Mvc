@@ -228,7 +228,7 @@ namespace Microsoft.AspNetCore.Mvc
                 new TempDataDictionaryFactory(new SessionStateTempDataProvider()),
                 new DiagnosticListener("Microsoft.AspNetCore"),
                 NullLoggerFactory.Instance,
-                new TestModelMetadataProvider());
+                new EmptyModelMetadataProvider());
 
             var services = new ServiceCollection();
             services.AddSingleton(viewExecutor);

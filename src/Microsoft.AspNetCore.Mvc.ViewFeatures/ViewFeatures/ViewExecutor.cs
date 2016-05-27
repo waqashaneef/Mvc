@@ -25,6 +25,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         /// </summary>
         public static readonly string DefaultContentType = "text/html; charset=utf-8";
 
+        private readonly IModelMetadataProvider _modelMetadataProvider;
+
         /// <summary>
         /// Creates a new <see cref="ViewExecutor"/>.
         /// </summary>
@@ -77,13 +79,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             ViewEngine = viewEngine;
             TempDataFactory = tempDataFactory;
             DiagnosticSource = diagnosticSource;
-            ModelMetadataProvider = modelMetadataProvider;
+            _modelMetadataProvider = modelMetadataProvider;
         }
-
-        /// <summary>
-        /// Gets the <see cref="IModelMetadataProvider"/>.
-        /// </summary>
-        public IModelMetadataProvider ModelMetadataProvider { get; }
 
         /// <summary>
         /// Gets the <see cref="DiagnosticSource"/>.
@@ -145,7 +142,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             if (viewData == null)
             {
-                viewData = new ViewDataDictionary(ModelMetadataProvider, actionContext.ModelState);
+                viewData = new ViewDataDictionary(_modelMetadataProvider, actionContext.ModelState);
             }
 
             if (tempData == null)

@@ -341,7 +341,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 new TempDataDictionaryFactory(new SessionStateTempDataProvider()),
                 diagnosticSource,
                 NullLoggerFactory.Instance,
-                new TestModelMetadataProvider());
+                new EmptyModelMetadataProvider());
 
             return viewExecutor;
         }
