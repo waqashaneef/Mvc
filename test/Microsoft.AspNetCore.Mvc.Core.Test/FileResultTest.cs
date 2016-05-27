@@ -87,8 +87,8 @@ namespace Microsoft.AspNetCore.Mvc
                 .Setup(c => c.RequestServices.GetService(typeof(ILoggerFactory)))
                 .Returns(NullLoggerFactory.Instance);
             httpContext
-                .Setup(c => c.RequestServices.GetService(typeof(FileResultExecutor)))
-                .Returns(new FileResultExecutor());
+                .Setup(c => c.RequestServices.GetService(typeof(EmptyFileResultExecutor)))
+                .Returns(new EmptyFileResultExecutor());
 
             var actionContext = CreateActionContext(httpContext.Object);
 
@@ -144,7 +144,7 @@ namespace Microsoft.AspNetCore.Mvc
             var services = new ServiceCollection();
             var loggerSink = new TestSink();
             services.AddSingleton<ILoggerFactory>(new TestLoggerFactory(loggerSink, true));
-            services.AddSingleton<FileResultExecutor>();
+            services.AddSingleton<EmptyFileResultExecutor>();
             httpContext.RequestServices = services.BuildServiceProvider();
 
             var actionContext = CreateActionContext(httpContext);
@@ -254,7 +254,7 @@ namespace Microsoft.AspNetCore.Mvc
         private static IServiceCollection CreateServices()
         {
             var services = new ServiceCollection();
-            services.AddSingleton<FileResultExecutor>();
+            services.AddSingleton<EmptyFileResultExecutor>();
             services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
             return services;
         }
@@ -290,17 +290,20 @@ namespace Microsoft.AspNetCore.Mvc
 
             public override Task ExecuteResultAsync(ActionContext context)
             {
-                var executor = context.HttpContext.RequestServices.GetRequiredService<FileResultExecutor>();
-                executor.SetHeaders(this, context);
+                var executor = context.HttpContext.RequestServices.GetRequiredService<EmptyFileResultExecutor>();
+                return executor.ExecuteAsync(context, this);
+            }
+        }
+
+        private class EmptyFileResultExecutor : FileResultExecutor
+        {
+            public Task ExecuteAsync(ActionContext context, EmptyFileResult result)
+            {
                 var loggerFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
                 var logger = loggerFactory.CreateLogger<EmptyFileResult>();
-                logger.FileResultExecuting(FileDownloadName);
-                return WriteFileAsync(context.HttpContext.Response);
-            }
-
-            public override Task WriteFileAsync(HttpResponse response)
-            {
-                WasWriteFileCalled = true;
+                logger.FileResultExecuting(result.FileDownloadName);
+                SetHeaders(context, result);
+                result.WasWriteFileCalled = true;
                 return Task.FromResult(0);
             }
         }

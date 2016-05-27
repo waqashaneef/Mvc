@@ -18,7 +18,6 @@ namespace Microsoft.AspNetCore.Mvc
     /// </summary>
     public class VirtualFileResult : FileResult
     {
-        private VirtualFileResultExecutor _executor;
         private string _fileName;
 
         /// <summary>
@@ -87,29 +86,8 @@ namespace Microsoft.AspNetCore.Mvc
                 throw new ArgumentNullException(nameof(context));
             }
 
-            _executor = context.HttpContext.RequestServices.GetService<VirtualFileResultExecutor>();
-            return _executor.ExecuteResultAsync(this, context);
-        }
-
-        /// <inheritdoc />
-        public override Task WriteFileAsync(HttpResponse response)
-        {
-            return _executor.DefaultWriteFileAsync(response);
-        }
-
-        /// <summary>
-        /// Returns <see cref="Stream"/> for the specified <paramref name="fileInfo"/>.
-        /// </summary>
-        /// <param name="fileInfo">The <see cref="IFileInfo"/> for which the stream is needed.</param>
-        /// <returns><see cref="Stream"/> for the specified <paramref name="fileInfo"/>.</returns>
-        public virtual Stream GetFileStream(IFileInfo fileInfo)
-        {
-            if (fileInfo == null)
-            {
-                throw new ArgumentNullException(nameof(fileInfo));
-            }
-
-            return _executor.DefaultGetFileStream(fileInfo);
+            var executor = context.HttpContext.RequestServices.GetService<VirtualFileResultExecutor>();
+            return executor.ExecuteAsync(context, this);
         }
     }
 }

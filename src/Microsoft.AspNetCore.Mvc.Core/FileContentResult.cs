@@ -4,6 +4,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
@@ -16,7 +17,6 @@ namespace Microsoft.AspNetCore.Mvc
     /// </summary>
     public class FileContentResult : FileResult
     {
-        private FileContentResultExecutor _executor;
         private byte[] _fileContents;
 
         /// <summary>
@@ -73,16 +73,16 @@ namespace Microsoft.AspNetCore.Mvc
             }
         }
 
+        /// <inheritdoc />
         public override Task ExecuteResultAsync(ActionContext context)
         {
-            _executor = context.HttpContext.RequestServices.GetRequiredService<FileContentResultExecutor>();
-            return _executor.ExecuteResultAsync(this, context);
-        }
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
 
-        /// <inheritdoc />
-        public override Task WriteFileAsync(HttpResponse response)
-        {
-            return _executor.DefaultWriteFileAsync(response);
+            var executor = context.HttpContext.RequestServices.GetRequiredService<FileContentResultExecutor>();
+            return executor.ExecuteAsync(context, this);
         }
     }
 }

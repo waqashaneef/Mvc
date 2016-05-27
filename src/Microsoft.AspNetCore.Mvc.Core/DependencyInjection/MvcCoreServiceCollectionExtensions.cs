@@ -207,10 +207,10 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton(ArrayPool<byte>.Shared);
             services.TryAddSingleton(ArrayPool<char>.Shared);
             services.TryAddSingleton<ObjectResultExecutor>();
-            services.TryAddTransient<PhysicalFileResultExecutor>();
-            services.TryAddTransient<VirtualFileResultExecutor>();
-            services.TryAddTransient<FileStreamResultExecutor>();
-            services.TryAddTransient<FileContentResultExecutor>();
+            services.TryAddSingleton<PhysicalFileResultExecutor>();
+            services.TryAddSingleton<VirtualFileResultExecutor>();
+            services.TryAddSingleton<FileStreamResultExecutor>();
+            services.TryAddSingleton<FileContentResultExecutor>();
 
             //
             // Setup default handler

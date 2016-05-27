@@ -1,9 +1,11 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.Extensions.FileProviders;
@@ -15,31 +17,39 @@ namespace Microsoft.AspNetCore.Mvc.Internal
     {
         private const int DefaultBufferSize = 0x1000;
 
-        private ActionContext _context;
         private readonly IHostingEnvironment _hostingEnvironment;
-        private readonly ILogger<VirtualFileResultExecutor> _logger;
-        private VirtualFileResult _result;
+        private readonly ILogger _logger;
 
         public VirtualFileResultExecutor(ILoggerFactory loggerFactory, IHostingEnvironment hostingEnvironment)
         {
+            if (loggerFactory == null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
+            if (hostingEnvironment == null)
+            {
+                throw new ArgumentNullException(nameof(hostingEnvironment));
+            }
+
             _logger = loggerFactory.CreateLogger<VirtualFileResultExecutor>();
-            _hostingEnvironment = hostingEnvironment;            
+            _hostingEnvironment = hostingEnvironment;
         }
 
-        public Task ExecuteResultAsync(VirtualFileResult result, ActionContext context)
+        public Task ExecuteAsync(ActionContext context, VirtualFileResult result)
         {
-            _result = result;
-            _context = context;
-            SetHeaders(result, context);
+            SetHeaders(context, result);
             _logger.FileResultExecuting(result.FileDownloadName);
-            return result.WriteFileAsync(context.HttpContext.Response);
+
+            return WriteFileAsync(context, result);
         }
 
-        internal async Task DefaultWriteFileAsync(HttpResponse response)
+        private async Task WriteFileAsync(ActionContext context, VirtualFileResult result)
         {
-            var fileProvider = GetFileProvider(response.HttpContext.RequestServices);
+            var response = context.HttpContext.Response;
+            var fileProvider = GetFileProvider(result);
 
-            var normalizedPath = _result.FileName;
+            var normalizedPath = result.FileName;
             if (normalizedPath.StartsWith("~", StringComparison.Ordinal))
             {
                 normalizedPath = normalizedPath.Substring(1);
@@ -60,7 +70,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 }
                 else
                 {
-                    var fileStream = _result.GetFileStream(fileInfo);
+                    var fileStream = GetFileStream(fileInfo);
                     using (fileStream)
                     {
                         await fileStream.CopyToAsync(response.Body, DefaultBufferSize);
@@ -70,23 +80,23 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             else
             {
                 throw new FileNotFoundException(
-                    Resources.FormatFileResult_InvalidPath(_result.FileName), _result.FileName);
+                    Resources.FormatFileResult_InvalidPath(result.FileName), result.FileName);
             }
         }
 
-        private IFileProvider GetFileProvider(IServiceProvider requestServices)
+        private IFileProvider GetFileProvider(VirtualFileResult result)
         {
-            if (_result.FileProvider != null)
+            if (result.FileProvider != null)
             {
-                return _result.FileProvider;
+                return result.FileProvider;
             }
 
-            _result.FileProvider = _hostingEnvironment.WebRootFileProvider;
+            result.FileProvider = _hostingEnvironment.WebRootFileProvider;
 
-            return _result.FileProvider;
+            return result.FileProvider;
         }
 
-        internal Stream DefaultGetFileStream(IFileInfo fileInfo)
+        protected virtual Stream GetFileStream(IFileInfo fileInfo)
         {
             return fileInfo.CreateReadStream();
         }

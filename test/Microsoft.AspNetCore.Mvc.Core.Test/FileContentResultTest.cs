@@ -122,7 +122,7 @@ namespace Microsoft.AspNetCore.Mvc
         private static IServiceCollection CreateServices()
         {
             var services = new ServiceCollection();
-            services.AddTransient<FileContentResultExecutor>();
+            services.AddSingleton<FileContentResultExecutor>();
             services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
 
             return services;

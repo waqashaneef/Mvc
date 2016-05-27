@@ -2,9 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.IO;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
@@ -17,7 +15,6 @@ namespace Microsoft.AspNetCore.Mvc
     /// </summary>
     public class PhysicalFileResult : FileResult
     {
-        private PhysicalFileResultExecutor _executor;
         private string _fileName;
 
         /// <summary>
@@ -80,24 +77,8 @@ namespace Microsoft.AspNetCore.Mvc
                 throw new ArgumentNullException(nameof(context));
             }
 
-            _executor = context.HttpContext.RequestServices.GetRequiredService<PhysicalFileResultExecutor>();
-            return _executor.ExecuteAsync(this, context);
-        }
-
-        /// <inheritdoc />
-        public override Task WriteFileAsync(HttpResponse response)
-        {
-            return _executor.DefaultWriteFileAsync();
-        }
-
-        /// <summary>
-        /// Returns <see cref="Stream"/> for the specified <paramref name="path"/>.
-        /// </summary>
-        /// <param name="path">The path for which the <see cref="FileStream"/> is needed.</param>
-        /// <returns><see cref="FileStream"/> for the specified <paramref name="path"/>.</returns>
-        public virtual Stream GetFileStream(string path)
-        {
-            return _executor.DefaultGetFileStream(path);
+            var executor = context.HttpContext.RequestServices.GetRequiredService<PhysicalFileResultExecutor>();
+            return executor.ExecuteAsync(context, this);
         }
     }
 }

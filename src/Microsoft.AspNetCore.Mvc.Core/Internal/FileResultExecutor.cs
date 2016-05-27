@@ -1,20 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.AspNetCore.Mvc.Internal
 {
     public class FileResultExecutor
     {
-        public void SetHeaders(FileResult result, ActionContext context)
+        protected void SetHeaders(ActionContext context, FileResult result)
         {
-            SetContentType(result, context);
-            SetContentDispositionHeader(result, context);
+            SetContentType(context, result);
+            SetContentDispositionHeader(context, result);
         }
 
-        private void SetContentDispositionHeader(FileResult result, ActionContext context)
+        private void SetContentDispositionHeader(ActionContext context, FileResult result)
         {
             if (!string.IsNullOrEmpty(result.FileDownloadName))
             {
@@ -29,7 +28,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
         }
 
-        private void SetContentType(FileResult result, ActionContext context)
+        private void SetContentType(ActionContext context, FileResult result)
         {
             var response = context.HttpContext.Response;
             response.ContentType = result.ContentType.ToString();

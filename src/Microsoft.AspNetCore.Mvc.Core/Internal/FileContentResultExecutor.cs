@@ -1,6 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
@@ -11,29 +12,33 @@ namespace Microsoft.AspNetCore.Mvc.Internal
     public class FileContentResultExecutor : FileResultExecutor
     {
         private readonly ILogger _logger;
-        private ActionContext _context;
-        private FileContentResult _result;
 
         public FileContentResultExecutor(ILoggerFactory loggerFactory)
         {
-            _logger = loggerFactory.CreateLogger<FileContentResult>();
+            if (loggerFactory == null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
+            _logger = loggerFactory.CreateLogger<FileContentResultExecutor>();
         }
 
-        public Task ExecuteResultAsync(FileContentResult result, ActionContext context)
+        public Task ExecuteAsync(ActionContext context, FileContentResult result)
         {
-            _result = result;
-            _context = context;
-            SetHeaders(result, context);
+            SetHeaders(context, result);
             _logger.FileResultExecuting(result.FileDownloadName);
-            return result.WriteFileAsync(context.HttpContext.Response);
+
+            return WriteFileAsync(context, result);
         }
 
-        internal Task DefaultWriteFileAsync(HttpResponse response)
+        private Task WriteFileAsync(ActionContext context, FileContentResult result)
         {
+            var response = context.HttpContext.Response;
+
             var bufferingFeature = response.HttpContext.Features.Get<IHttpBufferingFeature>();
             bufferingFeature?.DisableResponseBuffering();
 
-            return response.Body.WriteAsync(_result.FileContents, offset: 0, count: _result.FileContents.Length);
+            return response.Body.WriteAsync(result.FileContents, offset: 0, count: result.FileContents.Length);
         }
     }
 }

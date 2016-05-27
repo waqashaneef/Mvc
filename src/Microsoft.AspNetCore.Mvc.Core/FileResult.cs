@@ -43,14 +43,5 @@ namespace Microsoft.AspNetCore.Mvc
             get { return _fileDownloadName ?? string.Empty; }
             set { _fileDownloadName = value; }
         }
-
-        /// <summary>
-        /// Writes the file to the specified <paramref name="response"/>.
-        /// </summary>
-        /// <param name="response">The <see cref="HttpResponse"/>.</param>
-        /// <returns>
-        /// A <see cref="Task"/> that will complete when the file has been written to the response.
-        /// </returns>
-        public abstract Task WriteFileAsync(HttpResponse response);
     }
 }
