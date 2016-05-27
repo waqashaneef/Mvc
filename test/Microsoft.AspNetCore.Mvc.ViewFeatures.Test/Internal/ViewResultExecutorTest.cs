@@ -300,7 +300,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
         private ActionContext GetActionContext(string actionName = null)
         {
-            return new ActionContext(new DefaultHttpContext(), new RouteData(), new ControllerActionDescriptor() { ActionName = actionName });
+            var routeData = new RouteData();
+            routeData.Values["action"] = actionName;
+
+            return new ActionContext(new DefaultHttpContext(), routeData, new ControllerActionDescriptor() { ActionName = actionName });
         }
 
         private ViewResultExecutor GetViewExecutor(DiagnosticListener diagnosticSource = null)

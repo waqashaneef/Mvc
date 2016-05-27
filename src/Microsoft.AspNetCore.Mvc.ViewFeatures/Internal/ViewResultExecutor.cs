@@ -20,6 +20,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
     /// </summary>
     public class ViewResultExecutor : ViewExecutor
     {
+        private const string ActionNameKey = "action";
+
         /// <summary>
         /// Creates a new <see cref="ViewResultExecutor"/>.
         /// </summary>
@@ -71,7 +73,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             var viewEngine = viewResult.ViewEngine ?? ViewEngine;
 
-            var viewName = viewResult.ViewName ?? (actionContext.ActionDescriptor as ControllerActionDescriptor)?.ActionName;
+            var viewName = viewResult.ViewName ?? GetActionName(actionContext);
 
             var result = viewEngine.GetView(executingFilePath: null, viewPath: viewName, isMainPage: true);
             var originalResult = result;
@@ -171,6 +173,48 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 viewResult.TempData,
                 viewResult.ContentType,
                 viewResult.StatusCode);
+        }
+
+        private static string GetActionName(ActionContext context)
+        {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            object routeValue;
+            if (!context.RouteData.Values.TryGetValue(ActionNameKey, out routeValue))
+            {
+                return null;
+            }
+
+            var actionDescriptor = context.ActionDescriptor;
+            string normalizedValue = null;
+            if (actionDescriptor.AttributeRouteInfo != null)
+            {
+                object match;
+                if (actionDescriptor.RouteValueDefaults.TryGetValue(ActionNameKey, out match))
+                {
+                    normalizedValue = match?.ToString();
+                }
+            }
+            else
+            {
+                string value;
+                if (actionDescriptor.RouteValues.TryGetValue(ActionNameKey, out value) &&
+                    !string.IsNullOrEmpty(value))
+                {
+                    normalizedValue = value;
+                }
+            }
+
+            var stringRouteValue = routeValue?.ToString();
+            if (string.Equals(normalizedValue, stringRouteValue, StringComparison.OrdinalIgnoreCase))
+            {
+                return normalizedValue;
+            }
+
+            return stringRouteValue;
         }
     }
 }
